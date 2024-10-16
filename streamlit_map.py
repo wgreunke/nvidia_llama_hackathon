@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import supabase
+
+#Connect to supabase
+
+
+
 
 data = {
     'event_date':[10,30,20],
