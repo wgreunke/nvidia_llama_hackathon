@@ -14,9 +14,10 @@ st.write(s_url)
 supabase = supabase.create_client(s_url, s_key)
 #get the events table and print out the results
 event_results = supabase.table("events").select("*").execute()
-st.write(event_results.data)
+#st.write(event_results.data)
 
-
+event_df = pd.DataFrame(event_results.data)
+st.write(event_df)
 
 
 
