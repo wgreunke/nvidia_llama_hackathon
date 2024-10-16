@@ -4,11 +4,14 @@ import numpy as np
 import supabase
 
 #Connect to supabase
-supbase_url=st.secrets["supabase_url"]
-upabase_key=st.secrets["supabase_key"]
-st.write(supabase_url)
-                        
-supabase = supabase.create_client(supabase_url, supabase_key)
+
+s_url=st.secrets["supabase_url"]
+s_key=st.secrets["supabase_key"]
+st.write(s_url)
+
+#st.write("DB username:", st.secrets["db_username"])
+
+supabase = supabase.create_client(s_url, s_key)
 #get the events table and print out the results
 event_results = supabase.table("events").select("*").execute()
 st.write(event_results.data)
