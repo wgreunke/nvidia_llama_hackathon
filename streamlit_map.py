@@ -6,6 +6,7 @@ import supabase
 #Connect to supabase
 supbase_url=st.secrets["supabase_url"]
 upabase_key=st.secrets["supabase_key"]
+st.write(supabase_url)
                         
 supabase = supabase.create_client(supabase_url, supabase_key)
 #get the events table and print out the results
