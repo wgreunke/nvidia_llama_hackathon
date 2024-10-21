@@ -24,6 +24,7 @@ st.write(event_df)
 
 # ----------------Load the events.csv file --------------------------------
 csv_file_name="events.csv"
+path=""
 events_df = pd.read_csv(os.path.join(path,csv_file_name))
 
 #Convert the column date-of-event to a python date that can be filterd
