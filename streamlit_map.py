@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import supabase
 import os
+import datetime
 
 #Streamlit url
 #https://newsmap.streamlit.app/
