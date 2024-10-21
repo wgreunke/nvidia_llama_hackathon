@@ -7,20 +7,6 @@ import os
 #Streamlit url
 #https://newsmap.streamlit.app/
 
-#Connect to supabase
-s_url=st.secrets["supabase_url"]
-s_key=st.secrets["supabase_key"]
-st.write(s_url)
-
-#st.write("DB username:", st.secrets["db_username"])
-
-supabase = supabase.create_client(s_url, s_key)
-#get the events table and print out the results
-event_results = supabase.table("events").select("*").execute()
-#st.write(event_results.data)
-
-event_df = pd.DataFrame(event_results.data)
-st.write(event_df)
 
 # ----------------Load the events.csv file --------------------------------
 csv_file_name="events.csv"
@@ -31,7 +17,19 @@ events_df = pd.read_csv(os.path.join(path,csv_file_name))
 events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
 st.write(events_df)
 
+selected_date = st.slider(
+    'Select a date to filter events before this date',
+    min_value=events_df['date-of-event'].min(),
+    max_value=events_df['date-of-event'].max(),
+    value=events_df['date-of-event'].max(),
+    format="YYYY-MM-DD"
+)
 
+filtered_events_df = evetns_df[evetns_df['date-of-event'] <= selected_date]
+streamlit.write(filtered_events_df)
+
+
+#Add the slider
 data = {
     'event_date':[10,30,20],
     'City': ['Tampa, FL', 'Banner Elk, NC', 'Orlando'],
@@ -40,8 +38,8 @@ data = {
 }
 
 event_data=pd.DataFrame(data)
- 
-#Add the slider
+
+
 selected_date_range = st.slider("Select a date range",0,50, step=5)
 
 filtered_df = event_data[event_data['event_date'] <= selected_date_range]
