@@ -40,7 +40,7 @@ selected_date = st.slider(
 #Convert to python date
 selected_date=pd.Timestamp(selected_date)
 filtered_events_df = events_df[events_df['date-of-event'] <= selected_date]
-st.write(filtered_events_df)
+#st.write(filtered_events_df)
 
 
 #Add the slider
@@ -54,10 +54,10 @@ data = {
 event_data=pd.DataFrame(data)
 
 
-selected_date_range = st.slider("Select a date range",0,50, step=5)
+#selected_date_range = st.slider("Select a date range",0,50, step=5)
 
-filtered_df = event_data[event_data['event_date'] <= selected_date_range]
+#filtered_df = event_data[event_data['event_date'] <= selected_date_range]
 
-st.map(filtered_df,size=200,color="#0044ff")
+st.map(filtered_events,size=200,color="#0044ff")
 
-st.write(filtered_df)
+st.write(filtered_events_df)
