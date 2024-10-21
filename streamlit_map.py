@@ -15,9 +15,11 @@ events_df = pd.read_csv(os.path.join(path,csv_file_name))
 
 #Convert the column date-of-event to a python date that can be filterd
 events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
+
 st.write(events_df)
 
 
+# Create slider with correct date range (fixed)
 selected_date = st.slider(
     'Select a date to filter events before this date',
     min_value=events_df['date-of-event'].min(),
