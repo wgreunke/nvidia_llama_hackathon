@@ -17,6 +17,7 @@ events_df = pd.read_csv(os.path.join(path,csv_file_name))
 events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
 st.write(events_df)
 
+
 selected_date = st.slider(
     'Select a date to filter events before this date',
     min_value=events_df['date-of-event'].min(),
@@ -25,7 +26,9 @@ selected_date = st.slider(
     format="YYYY-MM-DD"
 )
 
-filtered_events_df = evetns_df[events_df['date-of-event'] <= selected_date]
+
+
+filtered_events_df = events_df[events_df['date-of-event'] <= selected_date]
 st.write(filtered_events_df)
 
 
