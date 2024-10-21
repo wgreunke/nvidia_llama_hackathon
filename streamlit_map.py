@@ -2,9 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import supabase
+import os
+
+#Streamlit url
+#https://newsmap.streamlit.app/
 
 #Connect to supabase
-
 s_url=st.secrets["supabase_url"]
 s_key=st.secrets["supabase_key"]
 st.write(s_url)
