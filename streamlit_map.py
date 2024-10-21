@@ -19,6 +19,13 @@ event_results = supabase.table("events").select("*").execute()
 event_df = pd.DataFrame(event_results.data)
 st.write(event_df)
 
+# ----------------Load the events.csv file --------------------------------
+csv_file_name="events.csv"
+events_df = pd.read_csv(os.path.join(path,csv_file_name))
+
+#Convert the column date-of-event to a python date that can be filterd
+events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
+st.write(events_df)
 
 
 data = {
