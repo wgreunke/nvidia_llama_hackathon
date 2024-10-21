@@ -58,6 +58,6 @@ event_data=pd.DataFrame(data)
 
 #filtered_df = event_data[event_data['event_date'] <= selected_date_range]
 
-st.map(filtered_events,size=200,color="#0044ff")
+st.map(filtered_events_df,size=200,color="#0044ff")
 
 st.write(filtered_events_df)
