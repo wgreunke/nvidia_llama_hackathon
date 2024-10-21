@@ -25,8 +25,8 @@ selected_date = st.slider(
     format="YYYY-MM-DD"
 )
 
-filtered_events_df = evetns_df[evetns_df['date-of-event'] <= selected_date]
-streamlit.write(filtered_events_df)
+filtered_events_df = evetns_df[events_df['date-of-event'] <= selected_date]
+st.write(filtered_events_df)
 
 
 #Add the slider
