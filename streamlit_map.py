@@ -12,20 +12,22 @@ events_df = pd.read_csv(os.path.join(path, csv_file_name))
 events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
 
 # Date slider setup
-min_date = events_df['date-of-event'].min().to_pydatetime().date()
+
+
+# Define date objects for min and initial dates
+min_date = datetime.date(2024, 9, 20)
+initial_date = datetime.date(2024, 9, 20)  # Adjust initial date as needed
 max_date = events_df['date-of-event'].max().to_pydatetime().date()
-initial_date = events_df['date-of-event'].min().to_pydatetime().date()
 
-if min_date == max_date:
-    max_date = max_date + datetime.timedelta(days=5)
-
+# Use the date slider
 selected_date = st.slider(
     'Select a date to filter events before this date',
-    min_value='2024-09-20',
+    min_value=min_date,
     max_value=max_date,
     value=initial_date,
     format="YYYY-MM-DD"
 )
+
 
 # Filter events based on selected date
 selected_date = pd.Timestamp(selected_date)
