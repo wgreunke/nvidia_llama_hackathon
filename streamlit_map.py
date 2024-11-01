@@ -21,7 +21,7 @@ if min_date == max_date:
 
 selected_date = st.slider(
     'Select a date to filter events before this date',
-    min_value=min_date,
+    min_value='2024-09-20',
     max_value=max_date,
     value=initial_date,
     format="YYYY-MM-DD"
