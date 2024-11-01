@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import pydeck as pdk
@@ -69,7 +70,7 @@ def create_map(data_df):
         initial_view_state=view_state,
         map_style="mapbox://styles/mapbox/light-v9",
         tooltip={
-            "html": "<b>{city}, {state}</b><br/>{event}",
+            "html": "<b>{city}, {state}</b><br/>{event}<br/><i>Click to view details</i>",
             "style": {
                 "backgroundColor": "white",
                 "color": "black"
@@ -84,16 +85,14 @@ with col1:
     # Display the map
     deck = create_map(filtered_events_df)
     
-    # Handle map clicks
-    selected_point = st.pydeck_chart(
+    deck_data = st.pydeck_chart(
         deck,
         use_container_width=True,
     )
     
-    if selected_point:
-        point_index = selected_point.get("index", None)
-        if point_index is not None:
-            st.session_state.clicked_event_index = point_index
+    if st.session_state.get("selected_point_index") is not None:
+        st.session_state.clicked_event_index = st.session_state.selected_point_index
+        st.session_state.selected_point_index = None
 
 with col2:
     # Event selection
@@ -106,10 +105,11 @@ with col2:
                 range(len(event_options)),
                 format_func=lambda x: event_options[x]
             )
-            st.session_state.clicked_event_index = selected_index
+            if st.button("Show Details"):
+                st.session_state.clicked_event_index = selected_index
 
     # Display event details
-    if st.session_state.clicked_event_index is not None:
+    if st.session_state.clicked_event_index is not None and len(filtered_events_df) > st.session_state.clicked_event_index:
         event = filtered_events_df.iloc[st.session_state.clicked_event_index]
         
         # Close button
