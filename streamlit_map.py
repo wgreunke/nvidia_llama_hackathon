@@ -5,6 +5,10 @@ import pydeck as pdk
 import datetime
 import os
 
+# Initialize session state for tracking clicked event
+if 'clicked_event_index' not in st.session_state:
+    st.session_state.clicked_event_index = None
+
 # Load and prepare the data
 csv_file_name = "events.csv"
 path = ""
@@ -35,6 +39,14 @@ filtered_events_df = events_df[events_df['date-of-event'] <= selected_date]
 center_lat = filtered_events_df['lat'].mean()
 center_lon = filtered_events_df['lon'].mean()
 
+# Add index column for click handling
+filtered_events_df = filtered_events_df.reset_index(drop=True)
+
+def map_click_handler(widget_instance, payload):
+    if payload["type"] == "click" and payload["index"] is not None:
+        st.session_state.clicked_event_index = payload["index"]
+        st.experimental_rerun()
+
 # Create the PyDeck layer
 layer = pdk.Layer(
     "ScatterplotLayer",
@@ -63,7 +75,7 @@ deck = pdk.Deck(
     initial_view_state=view_state,
     layers=[layer],
     tooltip={
-        "html": "<b>{city}, {state}</b><br/>{event}",
+        "html": "<b>{city}, {state}</b><br/>{event}<br/><i>Click for details</i>",
         "style": {
             "backgroundColor": "white",
             "color": "black",
@@ -73,17 +85,25 @@ deck = pdk.Deck(
     }
 )
 
-# Display the map
-st.pydeck_chart(deck)
-
-# Create a selectbox for event selection
-event_options = [f"{row['city']}, {row['state']} - {row['event']}" for _, row in filtered_events_df.iterrows()]
-selected_event_index = st.selectbox(
-    "Select an event to view details:",
-    range(len(event_options)),
-    format_func=lambda x: event_options[x],
-    key='event_selector'
+# Display the map with click handling
+st.pydeck_chart(
+    deck,
+    use_container_width=True,
+    on_click=map_click_handler
 )
+
+# Get the event index either from click or dropdown
+selected_event_index = st.session_state.clicked_event_index
+
+# Only show dropdown if no event is selected by clicking
+if selected_event_index is None:
+    event_options = [f"{row['city']}, {row['state']} - {row['event']}" for _, row in filtered_events_df.iterrows()]
+    selected_event_index = st.selectbox(
+        "Or select an event from the list:",
+        range(len(event_options)),
+        format_func=lambda x: event_options[x],
+        key='event_selector'
+    )
 
 # Display selected event details
 if selected_event_index is not None:
@@ -92,6 +112,11 @@ if selected_event_index is not None:
     # Create a card-like container for the details
     with st.container():
         st.markdown("---")  # Horizontal line for visual separation
+        
+        # Add a close button at the top right
+        if st.button("✖ Close Details", key="close_details"):
+            st.session_state.clicked_event_index = None
+            st.experimental_rerun()
         
         # Create columns for layout
         col1, col2 = st.columns([2, 1])
