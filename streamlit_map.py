@@ -11,15 +11,18 @@ path = ""
 events_df = pd.read_csv(os.path.join(path, csv_file_name))
 events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
 
+# Initialize session state for selected event
+if 'selected_event_index' not in st.session_state:
+    st.session_state.selected_event_index = None
+
 # Date slider setup
-
-
-# Define date objects for min and initial dates
-min_date = datetime.date(2024, 9, 20)
-initial_date = datetime.date(2024, 9, 20)  # Adjust initial date as needed
+min_date = events_df['date-of-event'].min().to_pydatetime().date()
 max_date = events_df['date-of-event'].max().to_pydatetime().date()
+initial_date = events_df['date-of-event'].min().to_pydatetime().date()
 
-# Use the date slider
+if min_date == max_date:
+    max_date = max_date + datetime.timedelta(days=5)
+
 selected_date = st.slider(
     'Select a date to filter events before this date',
     min_value=min_date,
@@ -28,15 +31,9 @@ selected_date = st.slider(
     format="YYYY-MM-DD"
 )
 
-
 # Filter events based on selected date
 selected_date = pd.Timestamp(selected_date)
 filtered_events_df = events_df[events_df['date-of-event'] <= selected_date]
-
-# Create tooltip column for hover information
-filtered_events_df['tooltip'] = filtered_events_df.apply(
-    lambda row: f"{row['city']}, {row['state']}\n{row['event']}", axis=1
-)
 
 # Calculate the center of the map
 center_lat = filtered_events_df['lat'].mean()
@@ -47,7 +44,7 @@ layer = pdk.Layer(
     "ScatterplotLayer",
     filtered_events_df,
     get_position=['lon', 'lat'],
-    get_radius=10000,  # Size of the points
+    get_radius=20000,  # Size of the points
     get_fill_color=[0, 68, 255],  # Blue color
     pickable=True,  # Enable clicking
     auto_highlight=True,
@@ -67,10 +64,7 @@ deck = pdk.Deck(
     ),
     layers=[layer],
     tooltip={
-        "html": "<b>City:</b> {city}, {state}<br/>"
-                "<b>Event:</b> {event}<br/>"
-                "<b>Date:</b> {date-of-event}<br/>"
-                "<b>Summary:</b> {summary}",
+        "html": "Click for details",
         "style": {
             "backgroundColor": "white",
             "color": "black"
@@ -78,15 +72,50 @@ deck = pdk.Deck(
     }
 )
 
-# Display the map
-st.pydeck_chart(deck)
+# Handle click events
+def handle_click(event):
+    if event and event.object:
+        index = event.index
+        st.session_state.selected_event_index = index
+        st.experimental_rerun()
 
-# Create a section for detailed event information
-st.subheader("Event Details")
-for _, event in filtered_events_df.iterrows():
-    with st.expander(f"{event['city']}, {event['state']} - {event['event']}"):
-        st.write(f"**Date:** {event['date-of-event']}")
-        st.write(f"**Summary:** {event['summary']}")
-        if pd.notna(event['event-picture-link']):
-            st.image(event['event-picture-link'], 
-                    caption=event['event-picture-caption'] if pd.notna(event['event-picture-caption']) else None)
+# Display the map with click handling
+st.pydeck_chart(deck, on_click=handle_click)
+
+# Display selected event details
+if st.session_state.selected_event_index is not None:
+    selected_event = filtered_events_df.iloc[st.session_state.selected_event_index]
+    
+    # Create columns for layout
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.header(f"{selected_event['city']}, {selected_event['state']}")
+        st.subheader(selected_event['event'])
+        st.write(f"**Date:** {selected_event['date-of-event'].strftime('%B %d, %Y')}")
+        st.write(f"**Summary:**")
+        st.write(selected_event['summary'])
+    
+    with col2:
+        if pd.notna(selected_event['event-picture-link']):
+            try:
+                st.image(
+                    selected_event['event-picture-link'],
+                    caption=selected_event['event-picture-caption'] if pd.notna(selected_event['event-picture-caption']) else None,
+                    use_column_width=True
+                )
+            except Exception as e:
+                st.error("Unable to load image")
+
+    # Add a close button
+    if st.button('Close Details'):
+        st.session_state.selected_event_index = None
+        st.experimental_rerun()
+
+# Optional: Display all events in a table below
+with st.expander("View All Events"):
+    st.dataframe(
+        filtered_events_df[[
+            'city', 'state', 'event', 'date-of-event', 'summary'
+        ]]
+    )
