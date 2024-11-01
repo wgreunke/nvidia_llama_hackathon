@@ -4,6 +4,7 @@ import numpy as np
 import pydeck as pdk
 import datetime
 import os
+import json
 
 # Load and prepare the data
 csv_file_name = "events.csv"
@@ -39,18 +40,22 @@ filtered_events_df = events_df[events_df['date-of-event'] <= selected_date]
 center_lat = filtered_events_df['lat'].mean()
 center_lon = filtered_events_df['lon'].mean()
 
+# Create a unique ID for each point that we can use to identify clicks
+filtered_events_df['point_id'] = range(len(filtered_events_df))
+
 # Create the PyDeck layer
 layer = pdk.Layer(
     "ScatterplotLayer",
     filtered_events_df,
     get_position=['lon', 'lat'],
-    get_radius=20000,  # Size of the points
-    get_fill_color=[0, 68, 255],  # Blue color
-    pickable=True,  # Enable clicking
+    get_radius=20000,
+    get_fill_color=[0, 68, 255],
+    pickable=True,
     auto_highlight=True,
     radius_scale=3,
     radius_min_pixels=5,
     radius_max_pixels=15,
+    onClick="function(info) { window.selectedPointId = info.object.point_id; document.dispatchEvent(new CustomEvent('deck_click')); }"
 )
 
 # Create the deck specification
@@ -64,7 +69,7 @@ deck = pdk.Deck(
     ),
     layers=[layer],
     tooltip={
-        "html": "Click for details",
+        "html": "<b>Click for details</b><br/>{city}, {state}",
         "style": {
             "backgroundColor": "white",
             "color": "black"
@@ -72,45 +77,47 @@ deck = pdk.Deck(
     }
 )
 
-# Handle click events
-def handle_click(event):
-    if event and event.object:
-        index = event.index
-        st.session_state.selected_event_index = index
-        st.experimental_rerun()
+# Display the map
+st.pydeck_chart(deck)
 
-# Display the map with click handling
-st.pydeck_chart(deck, on_click=handle_click)
+# Create a selectbox for event selection (as a fallback interaction method)
+event_options = [f"{row['city']}, {row['state']} - {row['event']}" for _, row in filtered_events_df.iterrows()]
+selected_event_index = st.selectbox(
+    "Select an event to view details:",
+    range(len(event_options)),
+    format_func=lambda x: event_options[x],
+    key='event_selector'
+)
 
 # Display selected event details
-if st.session_state.selected_event_index is not None:
-    selected_event = filtered_events_df.iloc[st.session_state.selected_event_index]
+if selected_event_index is not None:
+    selected_event = filtered_events_df.iloc[selected_event_index]
     
-    # Create columns for layout
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.header(f"{selected_event['city']}, {selected_event['state']}")
-        st.subheader(selected_event['event'])
-        st.write(f"**Date:** {selected_event['date-of-event'].strftime('%B %d, %Y')}")
-        st.write(f"**Summary:**")
-        st.write(selected_event['summary'])
-    
-    with col2:
-        if pd.notna(selected_event['event-picture-link']):
-            try:
-                st.image(
-                    selected_event['event-picture-link'],
-                    caption=selected_event['event-picture-caption'] if pd.notna(selected_event['event-picture-caption']) else None,
-                    use_column_width=True
-                )
-            except Exception as e:
-                st.error("Unable to load image")
-
-    # Add a close button
-    if st.button('Close Details'):
-        st.session_state.selected_event_index = None
-        st.experimental_rerun()
+    # Create a card-like container for the details
+    with st.container():
+        st.markdown("---")  # Horizontal line for visual separation
+        
+        # Create columns for layout
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            st.header(f"{selected_event['city']}, {selected_event['state']}")
+            st.subheader(selected_event['event'])
+            st.write(f"**Date:** {selected_event['date-of-event'].strftime('%B %d, %Y')}")
+            st.write("**Summary:**")
+            st.write(selected_event['summary'])
+        
+        with col2:
+            if pd.notna(selected_event['event-picture-link']):
+                try:
+                    st.image(
+                        selected_event['event-picture-link'],
+                        caption=selected_event['event-picture-caption'] if pd.notna(selected_event['event-picture-caption']) else None,
+                        use_column_width=True
+                    )
+                except Exception as e:
+                    st.error("Unable to load image")
+                    st.write("Image URL:", selected_event['event-picture-link'])
 
 # Optional: Display all events in a table below
 with st.expander("View All Events"):
