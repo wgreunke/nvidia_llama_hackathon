@@ -4,17 +4,12 @@ import numpy as np
 import pydeck as pdk
 import datetime
 import os
-import json
 
 # Load and prepare the data
 csv_file_name = "events.csv"
 path = ""
 events_df = pd.read_csv(os.path.join(path, csv_file_name))
 events_df['date-of-event'] = pd.to_datetime(events_df['date-of-event'])
-
-# Initialize session state for selected event
-if 'selected_event_index' not in st.session_state:
-    st.session_state.selected_event_index = None
 
 # Date slider setup
 min_date = events_df['date-of-event'].min().to_pydatetime().date()
@@ -40,9 +35,6 @@ filtered_events_df = events_df[events_df['date-of-event'] <= selected_date]
 center_lat = filtered_events_df['lat'].mean()
 center_lon = filtered_events_df['lon'].mean()
 
-# Create a unique ID for each point that we can use to identify clicks
-filtered_events_df['point_id'] = range(len(filtered_events_df))
-
 # Create the PyDeck layer
 layer = pdk.Layer(
     "ScatterplotLayer",
@@ -55,24 +47,28 @@ layer = pdk.Layer(
     radius_scale=3,
     radius_min_pixels=5,
     radius_max_pixels=15,
-    onClick="function(info) { window.selectedPointId = info.object.point_id; document.dispatchEvent(new CustomEvent('deck_click')); }"
+)
+
+# Create the deck specification
+view_state = pdk.ViewState(
+    latitude=center_lat,
+    longitude=center_lon,
+    zoom=5,
+    pitch=0,
 )
 
 # Create the deck specification
 deck = pdk.Deck(
     map_style="mapbox://styles/mapbox/light-v9",
-    initial_view_state=pdk.ViewState(
-        latitude=center_lat,
-        longitude=center_lon,
-        zoom=5,
-        pitch=0,
-    ),
+    initial_view_state=view_state,
     layers=[layer],
     tooltip={
-        "html": "<b>Click for details</b><br/>{city}, {state}",
+        "html": "<b>{city}, {state}</b><br/>{event}",
         "style": {
             "backgroundColor": "white",
-            "color": "black"
+            "color": "black",
+            "fontSize": "0.8em",
+            "padding": "5px"
         }
     }
 )
@@ -80,7 +76,7 @@ deck = pdk.Deck(
 # Display the map
 st.pydeck_chart(deck)
 
-# Create a selectbox for event selection (as a fallback interaction method)
+# Create a selectbox for event selection
 event_options = [f"{row['city']}, {row['state']} - {row['event']}" for _, row in filtered_events_df.iterrows()]
 selected_event_index = st.selectbox(
     "Select an event to view details:",
