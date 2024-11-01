@@ -45,7 +45,7 @@ layer = pdk.Layer(
     "ScatterplotLayer",
     filtered_events_df,
     get_position=['lon', 'lat'],
-    get_radius=20000,  # Size of the points
+    get_radius=10000,  # Size of the points
     get_fill_color=[0, 68, 255],  # Blue color
     pickable=True,  # Enable clicking
     auto_highlight=True,
