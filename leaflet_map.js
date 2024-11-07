@@ -27,7 +27,7 @@ const hurricaneIcon = new Icon({
 
 // Add this function to convert slider value to date
 function valueToDate(value) {
-  const baseDate = new Date('2024-09-20');
+  const baseDate = new Date('2024-09-22');
   const date = new Date(baseDate);
   date.setDate(baseDate.getDate() + value);
   return date.toLocaleDateString();
@@ -62,6 +62,9 @@ function StormMap() {
         Papa.parse(text, {
           header: true,
           complete: (results) => {
+            console.log('CSV columns:', Object.keys(results.data[0]));
+            console.log('First row data:', results.data[0]);
+            
             const formattedEvents = results.data
               .filter(event => event.lat && event.lon)
               .map(event => ({
@@ -76,7 +79,11 @@ function StormMap() {
                 ],
                 date: new Date(event['date-of-event']),
                 'event-picture-caption': event['event-picture-caption'],
-                'event-picture-link': event['event-picture-link']
+                'event-picture-link': event['event-picture-link'],
+                lat: event.lat,
+                lon: event.lon,
+                source: event.source,  
+                article_url: event.articel_url
               }));
             
             setEvents(formattedEvents);
@@ -92,14 +99,14 @@ function StormMap() {
 
   // Filter events based on slider date
   const filteredEvents = events.filter(event => {
-    const selectedDate = new Date('2024-09-20');
+    const selectedDate = new Date('2024-09-23');
     selectedDate.setDate(selectedDate.getDate() + dateValue);
     return event.date <= selectedDate;
   });
 
   return (
     <div>
-      <div style={{ width: '80%', margin: '20px auto' }}>
+      <div style={{ width: '100%', maxWidth: '800px', margin: '20px auto' }}>
         <Slider
           value={dateValue}
           min={0}
@@ -108,7 +115,7 @@ function StormMap() {
           valueLabelDisplay="auto"
           valueLabelFormat={valueToDate}
           marks={[
-            { value: 0, label: 'Sept 20' },
+            { value: 0, label: 'Sept 22' },
             { value: 32, label: 'Oct 22' }
           ]}
         />
@@ -158,50 +165,52 @@ function StormMap() {
       {/* Event Details Panel - Now shown below the map */}
       {selectedEvent && (
         <div style={{
-          margin: '20px auto',
           backgroundColor: 'white',
           padding: '20px',
           borderRadius: '8px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
           maxWidth: '800px',
-          width: '90%'
+          width: '90%',
+          margin: '20px auto'
         }}>
           <h2>{selectedEvent.city}, {selectedEvent.state}</h2>
-          <h3>{selectedEvent.event}</h3>
-          <p><strong>Date:</strong> {selectedEvent.date.toLocaleDateString()}</p>
-          <p>{selectedEvent.summary}</p>
+          <div style={{ marginBottom: '20px' }}>
+            <p><strong>Event Type:</strong> {selectedEvent.event}</p>
+            <p><strong>Date:</strong> {selectedEvent.date.toLocaleDateString()}</p>
+            <p><strong>Summary:</strong> {selectedEvent.summary}</p>
+            <p><strong>Location:</strong> {selectedEvent.lat}, {selectedEvent.lon}</p>
+            <p><strong>Source:</strong> {selectedEvent.source}</p>
+            <p><strong>Article:</strong> <a href={selectedEvent.article_url} target="_blank" rel="noopener noreferrer">{selectedEvent.article_url}</a></p>
+          </div>
           
           {selectedEvent['event-picture-link'] && (
-            <img 
-              src={selectedEvent['event-picture-link']} 
-              alt={selectedEvent['event-picture-caption'] || 'Event image'}
-              style={{
-                maxWidth: '100%',
-                height: 'auto',
-                marginTop: '10px',
-                marginBottom: '10px'
-              }}
-            />
-          )}
-          
-          {selectedEvent['event-picture-caption'] && (
-            <p style={{ fontSize: '0.9em', fontStyle: 'italic' }}>
-              {selectedEvent['event-picture-caption']}
-            </p>
+            <div style={{ marginBottom: '15px' }}>
+              <img 
+                src={selectedEvent['event-picture-link']} 
+                alt={selectedEvent['event-picture-caption'] || 'Event image'}
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  borderRadius: '4px'
+                }}
+              />
+              {selectedEvent['event-picture-caption'] && (
+                <p style={{ 
+                  fontSize: '0.9em', 
+                  fontStyle: 'italic',
+                  color: '#666',
+                  marginTop: '8px'
+                }}>
+                  {selectedEvent['event-picture-caption']}
+                </p>
+              )}
+            </div>
           )}
         </div>
       )}
 
       {/* Debug list of filtered events */}
-      <div style={{ 
-        width: '80%', 
-        margin: '20px auto', 
-        padding: '20px', 
-        backgroundColor: '#f5f5f5', 
-        borderRadius: '8px' 
-      }}>
-
-      </div>
+      
     </div>
   );
 }
@@ -219,4 +228,3 @@ function App() {
 }
 
 export default App;
-
