@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/nvidia_llama_hackathon/static/css/main.dd34e2bb.css",
-    "main.js": "/nvidia_llama_hackathon/static/js/main.ff0fa7c5.js",
+    "main.js": "/nvidia_llama_hackathon/static/js/main.d23b4319.js",
     "static/js/453.f1588543.chunk.js": "/nvidia_llama_hackathon/static/js/453.f1588543.chunk.js",
     "index.html": "/nvidia_llama_hackathon/index.html",
     "main.dd34e2bb.css.map": "/nvidia_llama_hackathon/static/css/main.dd34e2bb.css.map",
-    "main.ff0fa7c5.js.map": "/nvidia_llama_hackathon/static/js/main.ff0fa7c5.js.map",
+    "main.d23b4319.js.map": "/nvidia_llama_hackathon/static/js/main.d23b4319.js.map",
     "453.f1588543.chunk.js.map": "/nvidia_llama_hackathon/static/js/453.f1588543.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.dd34e2bb.css",
-    "static/js/main.ff0fa7c5.js"
+    "static/js/main.d23b4319.js"
   ]
 }
